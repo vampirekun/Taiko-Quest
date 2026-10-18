@@ -6,6 +6,20 @@ class GameInput{
 		this.controller = controller
 		this.game = this.controller.game
 		this.soundEffect = this.controller.soundEffect || 1
+
+		// Same-origin host bridge for Taiquest. The parent sends normalized controller hits;
+		// keep it opt-in to static mode and route through the game's native key handling.
+		if(gameConfig.staticMode && window.parent !== window){
+			this.hostMessage = event => {
+				if(event.source !== window.parent || !event.data || event.data.type !== "taiquest:hit") return
+				var key = event.data.action
+				if(["don_l", "don_r", "ka_l", "ka_r"].includes(key)){
+					this.keyPress(true, key)
+					this.keyPress(false, key)
+				}
+			}
+			window.addEventListener("message", this.hostMessage)
+		}
 		
 		this.keyboard = new Keyboard({
 			ka_l: ["ka_l"],
@@ -249,6 +263,7 @@ class GameInput{
 		return this.keyTime
 	}
 	clean(){
+		if(this.hostMessage){ window.removeEventListener("message", this.hostMessage) }
 		this.keyboard.clean()
 		this.gamepad.clean()
 		this.gamepadMenu.clean()
