@@ -1,6 +1,6 @@
 {
-  "songs_baseurl": "/songs/",
-  "assets_baseurl": "/assets/",
+  "songs_baseurl": "songs/",
+  "assets_baseurl": "assets/",
   "email": null,
   "accounts": false,
   "custom_js": "",
