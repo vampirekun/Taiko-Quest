@@ -104,7 +104,7 @@ class Loader{
 		
 		assets.views.forEach(name => {
 			var id = this.getFilename(name)
-			var url = this.path("/src/views/" + name) + this.queryString
+			var url = "/src/views/" + name + this.queryString
 			this.addPromise(this.ajax(url).then(page => {
 				assets.pages[id] = page
 			}), url)
