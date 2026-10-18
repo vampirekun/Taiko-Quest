@@ -1,0 +1,18 @@
+{
+  "songs_baseurl": "/songs/",
+  "assets_baseurl": "/assets/",
+  "email": null,
+  "accounts": false,
+  "custom_js": "",
+  "plugins": [],
+  "preview_type": "mp3",
+  "google_credentials": {
+    "gdrive_enabled": false
+  },
+  "_version": {
+    "commit": null,
+    "commit_short": "",
+    "version": "static-experiment",
+    "url": "https://github.com/vampirekun/Taiko-Quest/"
+  }
+}
