@@ -9,6 +9,8 @@ class Loader{
 		this.screen = document.getElementById("screen")
 		this.startTime = Date.now()
 		this.errorMessages = []
+		this.staticMode = new URLSearchParams(location.search).get("static") === "1"
+		this.staticBase = location.pathname.endsWith("/") ? location.pathname : location.pathname.slice(0, location.pathname.lastIndexOf("/") + 1)
 		
 		var promises = []
 		
@@ -17,11 +19,12 @@ class Loader{
 		}))
 		
 		// Experimental static mode: original frontend without Flask; local song import remains available.
-		var staticMode = new URLSearchParams(location.search).get("static") === "1"
+		var staticMode = this.staticMode
 		var configUrl = staticMode ? "/static/config.json" : "/api/config"
 		promises.push(this.ajax(configUrl).then(conf => {
 			gameConfig = JSON.parse(conf)
 			gameConfig.staticMode = staticMode
+			if(staticMode){ gameConfig.assets_baseurl = this.staticBase + "assets/"; gameConfig.songs_baseurl = this.staticBase + "songs/" }
 		}))
 		
 		Promise.all(promises).then(this.run.bind(this))
@@ -62,7 +65,7 @@ class Loader{
 			assets.css.forEach(name => {
 				var stylesheet = document.createElement("link")
 				stylesheet.rel = "stylesheet"
-				stylesheet.href = "/src/css/" + name + this.queryString
+				stylesheet.href = this.path("/src/css/" + name) + this.queryString
 				document.head.appendChild(stylesheet)
 			})
 			assets.assetsCss.forEach(name => {
@@ -101,7 +104,7 @@ class Loader{
 		
 		assets.views.forEach(name => {
 			var id = this.getFilename(name)
-			var url = "/src/views/" + name + this.queryString
+			var url = this.path("/src/views/" + name) + this.queryString
 			this.addPromise(this.ajax(url).then(page => {
 				assets.pages[id] = page
 			}), url)
@@ -476,9 +479,12 @@ class Loader{
 		this.screen.innerHTML = assets.pages[name]
 		this.screen.classList[patternBg ? "add" : "remove"]("pattern-bg")
 	}
+	path(url){
+		return this.staticMode && url.startsWith("/") ? this.staticBase + url.slice(1) : url
+	}
 	ajax(url, customRequest, customResponse){
 		var request = new XMLHttpRequest()
-		request.open("GET", url)
+		request.open("GET", this.path(url))
 		var promise = pageEvents.load(request)
 		if(!customResponse){
 			promise = promise.then(() => {
@@ -499,7 +505,7 @@ class Loader{
 		var script = document.createElement("script")
 		var url = url + this.queryString
 		var promise = pageEvents.load(script)
-		script.src = url
+		script.src = this.path(url)
 		document.head.appendChild(script)
 		return promise
 	}
