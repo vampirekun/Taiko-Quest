@@ -6,7 +6,7 @@ This branch adds an **experimental** static mode to the Taiko Web frontend. It d
 
 Serve the repository's `public/` directory as the document root of a local static HTTP server (not `file://`). Open `/` with `?static=1` appended, for example `http://localhost:8080/?static=1`.
 
-The static mode substitutes three server endpoints with JSON manifests under `/static/`: config, categories, and song catalogue. Accounts, online song catalogue, Google Drive integration, and multiplayer are not available in this mode. The original frontend's **local custom-song import** is the intended way to load a legally obtained song folder containing a `.tja` chart and its corresponding audio file.
+The static mode substitutes three server endpoints with JSON manifests under `/static/`: config, categories, and song catalogue. Accounts, online song catalogue, Google Drive integration, and multiplayer are not available in this mode. The original frontend's **local custom-song import** is the intended way to load legally obtained chart/audio files. In static mode the picker is switched to multi-file selection (including on Android-based browsers), so select the `.tja` chart and its matching audio file together. This mobile picker path is not yet verified on Meta Quest.
 
 ## Important limitations
 
