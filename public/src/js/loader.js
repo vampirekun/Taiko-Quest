@@ -16,8 +16,12 @@ class Loader{
 			this.screen.innerHTML = page
 		}))
 		
-		promises.push(this.ajax("/api/config").then(conf => {
+		// Experimental static mode: original frontend without Flask; local song import remains available.
+		var staticMode = new URLSearchParams(location.search).get("static") === "1"
+		var configUrl = staticMode ? "/static/config.json" : "/api/config"
+		promises.push(this.ajax(configUrl).then(conf => {
 			gameConfig = JSON.parse(conf)
+			gameConfig.staticMode = staticMode
 		}))
 		
 		Promise.all(promises).then(this.run.bind(this))
@@ -103,7 +107,7 @@ class Loader{
 			}), url)
 		})
 		
-		this.addPromise(this.ajax("/api/categories").then(cats => {
+		this.addPromise(this.ajax(gameConfig.staticMode ? "/static/categories.json" : "/api/categories").then(cats => {
 			assets.categories = JSON.parse(cats)
 			assets.categories.forEach(cat => {
 				if(cat.song_skin){
@@ -147,7 +151,7 @@ class Loader{
 				return
 			}
 			
-			this.addPromise(this.ajax("/api/songs").then(songs => {
+			this.addPromise(this.ajax(gameConfig.staticMode ? "/static/songs.json" : "/api/songs").then(songs => {
 				songs = JSON.parse(songs)
 				songs.forEach(song => {
 					var directory = gameConfig.songs_baseurl + song.id + "/"
