@@ -9,6 +9,8 @@ class Loader{
 		this.screen = document.getElementById("screen")
 		this.startTime = Date.now()
 		this.errorMessages = []
+		this.staticMode = new URLSearchParams(location.search).get("static") === "1"
+		this.staticBase = location.pathname.endsWith("/") ? location.pathname : location.pathname.slice(0, location.pathname.lastIndexOf("/") + 1)
 		
 		var promises = []
 		
@@ -16,8 +18,13 @@ class Loader{
 			this.screen.innerHTML = page
 		}))
 		
-		promises.push(this.ajax("/api/config").then(conf => {
+		// Experimental static mode: original frontend without Flask; local song import remains available.
+		var staticMode = this.staticMode
+		var configUrl = staticMode ? "/static/config.json" : "/api/config"
+		promises.push(this.ajax(configUrl).then(conf => {
 			gameConfig = JSON.parse(conf)
+			gameConfig.staticMode = staticMode
+			if(staticMode){ gameConfig.assets_baseurl = this.staticBase + "assets/"; gameConfig.songs_baseurl = this.staticBase + "songs/" }
 		}))
 		
 		Promise.all(promises).then(this.run.bind(this))
@@ -58,7 +65,7 @@ class Loader{
 			assets.css.forEach(name => {
 				var stylesheet = document.createElement("link")
 				stylesheet.rel = "stylesheet"
-				stylesheet.href = "/src/css/" + name + this.queryString
+				stylesheet.href = this.path("/src/css/" + name) + this.queryString
 				document.head.appendChild(stylesheet)
 			})
 			assets.assetsCss.forEach(name => {
@@ -103,7 +110,7 @@ class Loader{
 			}), url)
 		})
 		
-		this.addPromise(this.ajax("/api/categories").then(cats => {
+		this.addPromise(this.ajax(gameConfig.staticMode ? "/static/categories.json" : "/api/categories").then(cats => {
 			assets.categories = JSON.parse(cats)
 			assets.categories.forEach(cat => {
 				if(cat.song_skin){
@@ -147,7 +154,7 @@ class Loader{
 				return
 			}
 			
-			this.addPromise(this.ajax("/api/songs").then(songs => {
+			this.addPromise(this.ajax(gameConfig.staticMode ? "/static/songs.json" : "/api/songs").then(songs => {
 				songs = JSON.parse(songs)
 				songs.forEach(song => {
 					var directory = gameConfig.songs_baseurl + song.id + "/"
@@ -472,9 +479,12 @@ class Loader{
 		this.screen.innerHTML = assets.pages[name]
 		this.screen.classList[patternBg ? "add" : "remove"]("pattern-bg")
 	}
+	path(url){
+		return this.staticMode && url.startsWith("/") ? this.staticBase + url.slice(1) : url
+	}
 	ajax(url, customRequest, customResponse){
 		var request = new XMLHttpRequest()
-		request.open("GET", url)
+		request.open("GET", this.path(url))
 		var promise = pageEvents.load(request)
 		if(!customResponse){
 			promise = promise.then(() => {
@@ -495,7 +505,7 @@ class Loader{
 		var script = document.createElement("script")
 		var url = url + this.queryString
 		var promise = pageEvents.load(script)
-		script.src = url
+		script.src = this.path(url)
 		document.head.appendChild(script)
 		return promise
 	}

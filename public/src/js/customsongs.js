@@ -33,11 +33,18 @@ class CustomSongs{
 		
 		this.items = []
 		this.linkLocalFolder = document.getElementById("link-localfolder")
-		this.hasLocal = (typeof showDirectoryPicker === "function" || "webkitdirectory" in HTMLInputElement.prototype) && !(/Android|iPhone|iPad/.test(navigator.userAgent))
+		// Static mode offers a multi-file picker on mobile too; it cannot select a directory,
+		// but users may select the chart and matching audio files together.
+		this.hasLocal = gameConfig.staticMode || ((typeof showDirectoryPicker === "function" || "webkitdirectory" in HTMLInputElement.prototype) && !(/Android|iPhone|iPad/.test(navigator.userAgent)))
 		this.selected = -1
 		
 		if(this.hasLocal){
 			this.browse = document.getElementById("browse")
+			if(gameConfig.staticMode){
+				this.browse.removeAttribute("webkitdirectory")
+				this.browse.multiple = true
+				this.browse.accept = ".tja,.osu,.mp3,.ogg,.wav,.m4a,.txt,.ini,.def"
+			}
 			pageEvents.add(this.browse, "change", this.browseChange.bind(this))
 			this.setAltText(this.linkLocalFolder, strings.customSongs.localFolder)
 			pageEvents.add(this.linkLocalFolder, ["mousedown", "touchstart"], this.localFolder.bind(this))
